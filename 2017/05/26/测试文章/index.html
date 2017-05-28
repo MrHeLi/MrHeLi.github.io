@@ -111,7 +111,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -169,6 +169,10 @@
 
 
             
+<span>
+    <a href="/2017/05/26/测试文章/#comments" class="ds-thread-count" data-thread-key="测试文章" data-count-type="comments"></a>
+</span>
+
 
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
@@ -183,7 +187,7 @@
     <div class="content">
         
 <span class="post-time">
-    最后更新时间：<time datetime="2017-05-26T15:50:39.682Z" itemprop="dateUpdated">2017-05-26 23:50:39</time>
+    Last updated: <time datetime="2017-05-26T15:50:39.682Z" itemprop="dateUpdated">2017-05-26 23:50:39</time>
 </span><br>
 
 
@@ -280,6 +284,15 @@
 
     
 
+<div class="comments" id="comments">
+    <div class="ds-thread" data-thread-key="测试文章" data-title="测试文章" data-url="http://yoursite.com/2017/05/26/测试文章/"></div>
+</div>
+<script>
+lazyScripts.push('//cdn.bootcss.com/marked/0.3.6/marked.min.js');
+
+
+</script>
+
 
 
 
@@ -340,7 +353,7 @@
 
         <p>
             
-            <span>博客内容遵循<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
         </p>
     </div>
     <div class="bottom">
@@ -405,6 +418,9 @@
     <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
 <script>
 var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+var duoshuoQuery = {short_name:'true', theme: 'none'};
+lazyScripts.push('//unpkg.com/hexo-theme-material-indigo@latest/js/embed.min.js');
 
 
 
