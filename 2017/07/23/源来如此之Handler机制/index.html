@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handler机制/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
-<meta property="og:updated_time" content="2017-07-23T15:16:40.212Z">
+<meta property="og:updated_time" content="2017-07-23T15:19:48.902Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="源来如此之Handler机制">
 <meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
@@ -219,7 +219,7 @@
 <blockquote>
 <p>擦，捅了马蜂窝了，代码这么多。我就看个初始化而已，至于吗。哎，我们继续。这是Handler的构造函数之一，我们的<code>new Handler()</code>会调用该构造完成对象创建动作。在该构造函数中，我们看到了我们的目标mQueue得到了初始化<code>mQueue = mLooper.mQueue;</code>,好吧，mLooper开始出来搞事情了。可以看出，mLooper是通过Looper对myLooper函数静态调用赋值的<code>mLooper = Looper.myLooper();</code>。进入Looper代码。</p>
 </blockquote>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public static @Nullable Looper myLooper() &#123;</div><div class="line">    return sThreadLocal.get();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public static @Nullable Looper myLooper() &#123;</div><div class="line">    return sThreadLocal.get();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <blockquote>
 <p>进一步，我们发现，myLooper函数的返回值实际上是通过<code>sThreadLocal.get()</code>获得的线程本地变量副本。所以，该变量副本肯定是通过<code>sThreadLocal.set();</code>赋值的（关于ThreadLocal原理大家可自行百度）。代码依然在Looper中，查看代码，果然。</p>
 </blockquote>
@@ -351,7 +351,7 @@ public void run() {
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-07-23T15:16:40.212Z" itemprop="dateUpdated">2017-07-23 23:16:40</time>
+    Last updated: <time datetime="2017-07-23T15:19:48.902Z" itemprop="dateUpdated">2017-07-23 23:19:48</time>
 </span><br>
 
 
