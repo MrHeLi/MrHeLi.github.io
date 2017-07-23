@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handler机制/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
-<meta property="og:updated_time" content="2017-07-23T14:56:04.718Z">
+<meta property="og:updated_time" content="2017-07-23T14:59:55.078Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="源来如此之Handler机制">
 <meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
@@ -111,7 +111,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -215,77 +215,71 @@
 <blockquote>
 <p>在这里，我们首次见到了MessageQueue（本文中也会称为‘消息队列’）也就是queue, 从if条件判断可以看出，queue在这之前必然已经初始化（别问为什么）。既然如此，我们来开个小差，看看给queue赋值的mQueue什么时候初始化的。代码依然在Handler中。</p>
 </blockquote>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">	public Handler(Callback callback, boolean async) &#123;</div><div class="line">        if (FIND_POTENTIAL_LEAKS) &#123;</div><div class="line">            final Class&lt;? extends Handler&gt; klass = getClass();</div><div class="line">            if ((klass.isAnonymousClass() || klass.isMemberClass() || klass.isLocalClass()) &amp;&amp;</div><div class="line">                    (klass.getModifiers() &amp; Modifier.STATIC) == 0) &#123;</div><div class="line">                Log.w(TAG, &quot;The following Handler class should be static or leaks might occur: &quot; +</div><div class="line">                    klass.getCanonicalName());</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        mLooper = Looper.myLooper();</div><div class="line">        if (mLooper == null) &#123;</div><div class="line">            throw new RuntimeException(</div><div class="line">                &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);</div><div class="line">        &#125;</div><div class="line">        mQueue = mLooper.mQueue;</div><div class="line">        mCallback = callback;</div><div class="line">        mAsynchronous = async;</div><div class="line">    &#125;</div><div class="line">	```  </div><div class="line"></div><div class="line"></div><div class="line">&gt; 擦，捅了马蜂窝了，代码这么多。我就看个初始化而已，至于吗。哎，我们继续。这是Handler的构造函数之一，我们的`new Handler()`会调用该构造完成对象创建动作。在该构造函数中，我们看到了我们的目标mQueue得到了初始化`mQueue = mLooper.mQueue;`,好吧，mLooper开始出来搞事情了。可以看出，mLooper是通过Looper对myLooper函数静态调用赋值的`mLooper = Looper.myLooper();`。进入Looper代码。</div></pre></td></tr></table></figure>
-<p> public static @Nullable Looper myLooper() {</p>
-<pre><code>return sThreadLocal.get();
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&gt; 进一步，我们发现，myLooper函数的返回值实际上是通过`sThreadLocal.get()`获得的线程本地变量副本。所以，该变量副本肯定是通过`sThreadLocal.set();`赋值的（关于ThreadLocal原理大家可自行百度）。代码依然在Looper中，查看代码，果然。</div></pre></td></tr></table></figure>
-<p> public static void prepare() {</p>
-<pre><code>prepare(true);
-</code></pre><p> }<br> private static void prepare(boolean quitAllowed) {</p>
-<pre><code>if (sThreadLocal.get() != null) {
-    throw new RuntimeException(&quot;Only one Looper may be created per thread&quot;);
-}
-sThreadLocal.set(new Looper(quitAllowed));
-</code></pre><p> }<br> private Looper(boolean quitAllowed) {</p>
-<pre><code>mQueue = new MessageQueue(quitAllowed);
-mThread = Thread.currentThread();
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&gt; 看到没`sThreadLocal.set(new Looper(quitAllowed));`说什么来着。代码看到这里，不知道大家还记不记得，跟踪到这里是为啥。是为了查看mQueue的初始化过程。</div><div class="line">	简单梳理一下。</div><div class="line">		</div><div class="line">	1. 在Handler.sendMessage的调用链中，我们看到了发送消息之前，有一个叫queue的MessageQueue必须初始化。</div><div class="line">	2. queue的初始化` mQueue = mLooper.mQueue;`,`mLooper = Looper.myLooper();`引出了Looper。</div><div class="line">	3. `Looper.myLooper()`的返回值，实际上是ThreadLocal中保存的Looper变量副本。</div><div class="line">	4. 结合上面一段代码，可以看出，Looper变量副本的保存，是通过调用Looper.prepare()保存的。调用的同时，会新建一个Looper对象。而创建Looper对象的构造函数时，new了一个MessageQueue对象并且保存到了变量mQueue中。这个mQueue正式我们最开始发现的消息队列。</div><div class="line">	</div><div class="line">&gt; 好了，代码看到这里，我们只需要知道Looper.prepare()方法在哪里调用就能完成这一步的探索。通过搜索源码，ActivityThread.java。可以看到如下代码</div></pre></td></tr></table></figure>
-<p> public static void main(String[] args) {</p>
-<pre><code>Looper.prepareMainLooper();
-ActivityThread thread = new ActivityThread();
-thread.attach(false);
-Looper.loop();
-throw new RuntimeException(&quot;Main thread loop unexpectedly exited&quot;);
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; 这部分代码片段来自于Nougat 7.1.1_r6,可以看出Activity主线程的主函数中，调用了`Looper.prepareMainLooper();`，看起来是不是很像Looper.prepare（）？大胆猜测一下，就是这个函数。代码回到Looper,找到prepareMainLooper();</div></pre></td></tr></table></figure>
-<p> public static void prepareMainLooper() {</p>
-<pre><code>prepare(false);
-synchronized (Looper.class) {
-    if (sMainLooper != null) {
-        throw new IllegalStateException(&quot;The main Looper has already been prepared.&quot;);
+<p> `<br> public Handler(Callback callback, boolean async) {</p>
+<pre><code>if (FIND_POTENTIAL_LEAKS) {
+    final Class&lt;? extends Handler&gt; klass = getClass();
+    if ((klass.isAnonymousClass() || klass.isMemberClass() || klass.isLocalClass()) &amp;&amp;
+            (klass.getModifiers() &amp; Modifier.STATIC) == 0) {
+        Log.w(TAG, &quot;The following Handler class should be static or leaks might occur: &quot; +
+            klass.getCanonicalName());
     }
-    sMainLooper = myLooper();
 }
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&gt; 果然prepareMainLooper()中调用了prepare()方法。至此MessageQueue的出事话过程就全明白了。</div><div class="line">	1. MessageQueue在UI线程中，早已经通过调用`Looper.prepareMainLooper()`创建了一个Looper对象，同时也创建了一个MessageQueue对象并使用变量mQueue保存在该Looper中。</div><div class="line">	</div><div class="line">&gt; 明白消息队列初始化过程，是一个很好的开始。</div></pre></td></tr></table></figure>
-<p> public boolean sendMessageAtTime(Message msg, long uptimeMillis) {</p>
-<pre><code>MessageQueue queue = mQueue;
-if (queue == null) {
-    RuntimeException e = new RuntimeException(
-            this + &quot; sendMessageAtTime() called with no mQueue&quot;);
-    Log.w(&quot;Looper&quot;, e.getMessage(), e);
-    return false;
+mLooper = Looper.myLooper();
+if (mLooper == null) {
+    throw new RuntimeException(
+        &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);
 }
-return enqueueMessage(queue, msg, uptimeMillis);
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; 还记得最开始贴出的代码吗，对，就是Handler.sendMessage()引出的。这段代码，还有一个比较关键的是`enqueueMessage（）`,字面意思是加入消息队列。我们可以大胆猜测，这个函数就是要将发送的消息，加入到之前初始化的消息队列中。来看代码。</div></pre></td></tr></table></figure>
-<p> private boolean enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis) {</p>
-<pre><code>msg.target = this;
-if (mAsynchronous) {
-    msg.setAsynchronous(true);
-}
-return queue.enqueueMessage(msg, uptimeMillis);
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; 简单来看，该函数做了两件事情。</div><div class="line">1. `msg.target = this;`使当前发送的消息对象msg.target保持对当前Handler对象的引用。这一部分对于Handler机制非常重要。</div><div class="line">2. 调用之前的消息队列`queue.enqueueMessage()`将消息插入。进一步来看看这个方法。</div></pre></td></tr></table></figure>
-<p> boolean enqueueMessage(Message msg, long when) {</p>
-<pre><code>if (msg.target == null) {
-    throw new IllegalArgumentException(&quot;Message must have a target.&quot;);
-}
-if (msg.isInUse()) {
-    throw new IllegalStateException(msg + &quot; This message is already in use.&quot;);
-}
-synchronized (this) {
-    if (mQuitting) {
-        IllegalStateException e = new IllegalStateException(
-                msg.target + &quot; sending message to a Handler on a dead thread&quot;);
-        Log.w(TAG, e.getMessage(), e);
-        msg.recycle();
-        return false;
-    }
-    msg.markInUse();
-    msg.when = when;
+mQueue = mLooper.mQueue;
+mCallback = callback;
+mAsynchronous = async;
+</code></pre><p> }<br> `</p>
+</li>
+</ol>
+</li>
+</ul>
+<pre><code>&gt; 擦，捅了马蜂窝了，代码这么多。我就看个初始化而已，至于吗。哎，我们继续。这是Handler的构造函数之一，我们的`new Handler()`会调用该构造完成对象创建动作。在该构造函数中，我们看到了我们的目标mQueue得到了初始化`mQueue = mLooper.mQueue;`,好吧，mLooper开始出来搞事情了。可以看出，mLooper是通过Looper对myLooper函数静态调用赋值的`mLooper = Looper.myLooper();`。进入Looper代码。
+
+
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public static @Nullable Looper myLooper() &#123;</div><div class="line">    return sThreadLocal.get();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+&gt; 进一步，我们发现，myLooper函数的返回值实际上是通过`sThreadLocal.get()`获得的线程本地变量副本。所以，该变量副本肯定是通过`sThreadLocal.set();`赋值的（关于ThreadLocal原理大家可自行百度）。代码依然在Looper中，查看代码，果然。
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public static void prepare() &#123;</div><div class="line">	prepare(true);</div><div class="line">&#125;</div><div class="line">private static void prepare(boolean quitAllowed) &#123;</div><div class="line">	if (sThreadLocal.get() != null) &#123;</div><div class="line">		throw new RuntimeException(&quot;Only one Looper may be created per thread&quot;);</div><div class="line">	&#125;</div><div class="line">    sThreadLocal.set(new Looper(quitAllowed));</div><div class="line">&#125;</div><div class="line">private Looper(boolean quitAllowed) &#123;</div><div class="line">      	mQueue = new MessageQueue(quitAllowed);</div><div class="line">      	mThread = Thread.currentThread();</div><div class="line">  	&#125;</div></pre></td></tr></table></figure>
+
+&gt; 看到没`sThreadLocal.set(new Looper(quitAllowed));`说什么来着。代码看到这里，不知道大家还记不记得，跟踪到这里是为啥。是为了查看mQueue的初始化过程。
+    简单梳理一下。
+
+    1. 在Handler.sendMessage的调用链中，我们看到了发送消息之前，有一个叫queue的MessageQueue必须初始化。
+    2. queue的初始化` mQueue = mLooper.mQueue;`,`mLooper = Looper.myLooper();`引出了Looper。
+    3. `Looper.myLooper()`的返回值，实际上是ThreadLocal中保存的Looper变量副本。
+    4. 结合上面一段代码，可以看出，Looper变量副本的保存，是通过调用Looper.prepare()保存的。调用的同时，会新建一个Looper对象。而创建Looper对象的构造函数时，new了一个MessageQueue对象并且保存到了变量mQueue中。这个mQueue正式我们最开始发现的消息队列。
+
+&gt; 好了，代码看到这里，我们只需要知道Looper.prepare()方法在哪里调用就能完成这一步的探索。通过搜索源码，ActivityThread.java。可以看到如下代码
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public static void main(String[] args) &#123;</div><div class="line">    Looper.prepareMainLooper();</div><div class="line">    ActivityThread thread = new ActivityThread();</div><div class="line">    thread.attach(false);</div><div class="line">    Looper.loop();</div><div class="line">    throw new RuntimeException(&quot;Main thread loop unexpectedly exited&quot;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+&gt; 这部分代码片段来自于Nougat 7.1.1_r6,可以看出Activity主线程的主函数中，调用了`Looper.prepareMainLooper();`，看起来是不是很像Looper.prepare（）？大胆猜测一下，就是这个函数。代码回到Looper,找到prepareMainLooper();
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public static void prepareMainLooper() &#123;</div><div class="line">      	prepare(false);</div><div class="line">      	synchronized (Looper.class) &#123;</div><div class="line">           if (sMainLooper != null) &#123;</div><div class="line">               throw new IllegalStateException(&quot;The main Looper has already been prepared.&quot;);</div><div class="line">          	&#125;</div><div class="line">          	sMainLooper = myLooper();</div><div class="line">      	&#125;</div><div class="line">  	&#125;</div></pre></td></tr></table></figure>
+
+&gt; 果然prepareMainLooper()中调用了prepare()方法。至此MessageQueue的出事话过程就全明白了。
+    1. MessageQueue在UI线程中，早已经通过调用`Looper.prepareMainLooper()`创建了一个Looper对象，同时也创建了一个MessageQueue对象并使用变量mQueue保存在该Looper中。
+
+&gt; 明白消息队列初始化过程，是一个很好的开始。
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public boolean sendMessageAtTime(Message msg, long uptimeMillis) &#123;</div><div class="line">    MessageQueue queue = mQueue;</div><div class="line">    if (queue == null) &#123;</div><div class="line">        RuntimeException e = new RuntimeException(</div><div class="line">                this + &quot; sendMessageAtTime() called with no mQueue&quot;);</div><div class="line">        Log.w(&quot;Looper&quot;, e.getMessage(), e);</div><div class="line">        return false;</div><div class="line">    &#125;</div><div class="line">    return enqueueMessage(queue, msg, uptimeMillis);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+&gt; 还记得最开始贴出的代码吗，对，就是Handler.sendMessage()引出的。这段代码，还有一个比较关键的是`enqueueMessage（）`,字面意思是加入消息队列。我们可以大胆猜测，这个函数就是要将发送的消息，加入到之前初始化的消息队列中。来看代码。
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">private boolean enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis) &#123;</div><div class="line">      	msg.target = this;</div><div class="line">       if (mAsynchronous) &#123;</div><div class="line">           msg.setAsynchronous(true);</div><div class="line">       &#125;</div><div class="line">	return queue.enqueueMessage(msg, uptimeMillis);</div><div class="line">  	&#125;</div></pre></td></tr></table></figure>
+
+&gt; 简单来看，该函数做了两件事情。
+1. `msg.target = this;`使当前发送的消息对象msg.target保持对当前Handler对象的引用。这一部分对于Handler机制非常重要。
+2. 调用之前的消息队列`queue.enqueueMessage()`将消息插入。进一步来看看这个方法。
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line">	boolean enqueueMessage(Message msg, long when) &#123;</div><div class="line">        if (msg.target == null) &#123;</div><div class="line">            throw new IllegalArgumentException(&quot;Message must have a target.&quot;);</div><div class="line">        &#125;</div><div class="line">        if (msg.isInUse()) &#123;</div><div class="line">            throw new IllegalStateException(msg + &quot; This message is already in use.&quot;);</div><div class="line">        &#125;</div><div class="line">       	synchronized (this) &#123;</div><div class="line">            if (mQuitting) &#123;</div><div class="line">                IllegalStateException e = new IllegalStateException(</div><div class="line">                        msg.target + &quot; sending message to a Handler on a dead thread&quot;);</div><div class="line">                Log.w(TAG, e.getMessage(), e);</div><div class="line">                msg.recycle();</div><div class="line">                return false;</div><div class="line">            &#125;</div><div class="line">            msg.markInUse();</div><div class="line">            msg.when = when;</div><div class="line">            Message p = mMessages;</div><div class="line">            boolean needWake;</div><div class="line">            if (p == null || when == 0 || when &lt; p.when) &#123;</div><div class="line">                // New head, wake up the event queue if blocked.</div><div class="line">                msg.next = p;</div><div class="line">                mMessages = msg;</div><div class="line">                needWake = mBlocked;</div><div class="line">            &#125; else &#123;</div><div class="line">                // Inserted within the middle of the queue.  Usually we don&apos;t have to wake</div><div class="line">                // up the event queue unless there is a barrier at the head of the queue</div><div class="line">                // and the message is the earliest asynchronous message in the queue.</div><div class="line">                needWake = mBlocked &amp;&amp; p.target == null &amp;&amp; msg.isAsynchronous();</div><div class="line">                Message prev;</div><div class="line">                for (;;) &#123;</div><div class="line">                    prev = p;</div><div class="line">                    p = p.next;</div><div class="line">                    if (p == null || when &lt; p.when) &#123;</div><div class="line">                        break;</div><div class="line">                    &#125;</div><div class="line">                    if (needWake &amp;&amp; p.isAsynchronous()) &#123;</div><div class="line">                        needWake = false;</div><div class="line">                    &#125;</div><div class="line">               	&#125;</div><div class="line">                msg.next = p; // invariant: p == prev.next</div><div class="line">                prev.next = msg;</div><div class="line">           	&#125;</div><div class="line">            // We can assume mPtr != 0 because mQuitting is false.</div><div class="line">            if (needWake) &#123;</div><div class="line">                nativeWake(mPtr);</div><div class="line">            &#125;</div><div class="line">       	&#125;</div><div class="line">      		return true;</div><div class="line">   	&#125;</div><div class="line">	``` </div><div class="line"></div><div class="line">&gt; 哇塞，好多代码。在使用handler过程中，不知道大家有没有想过这样一个问题，Handler机制中有一个消息队列，里边可以存放很多消息对象。那么就必然需要用一种数据结构来维护，那这是个什么样的数据结构呢？我刚开始猜测不是数组，就是集合。于是，我就在源码里拼命的找啊，结果屁都没找到。显然，GooGle大神们想的和我等屁民并不一样。代码就在上边，为了突出，专门贴出来，见识一下吧。</div></pre></td></tr></table></figure>
+
     Message p = mMessages;
     boolean needWake;
     if (p == null || when == 0 || when &lt; p.when) {
@@ -312,98 +306,72 @@ synchronized (this) {
         msg.next = p; // invariant: p == prev.next
         prev.next = msg;
     }
-    // We can assume mPtr != 0 because mQuitting is false.
-    if (needWake) {
-        nativeWake(mPtr);
-    }
-}
-   return true;
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&gt; 哇塞，好多代码。在使用handler过程中，不知道大家有没有想过这样一个问题，Handler机制中有一个消息队列，里边可以存放很多消息对象。那么就必然需要用一种数据结构来维护，那这是个什么样的数据结构呢？我刚开始猜测不是数组，就是集合。于是，我就在源码里拼命的找啊，结果屁都没找到。显然，GooGle大神们想的和我等屁民并不一样。代码就在上边，为了突出，专门贴出来，见识一下吧。</div></pre></td></tr></table></figure>
-<p> Message p = mMessages;<br> boolean needWake;<br> if (p == null || when == 0 || when &lt; p.when) {</p>
-<pre><code>// New head, wake up the event queue if blocked.
-msg.next = p;
-mMessages = msg;
-needWake = mBlocked;
-</code></pre><p> } else {</p>
-<pre><code>// Inserted within the middle of the queue.  Usually we don&apos;t have to wake
-// up the event queue unless there is a barrier at the head of the queue
-// and the message is the earliest asynchronous message in the queue.
-needWake = mBlocked &amp;&amp; p.target == null &amp;&amp; msg.isAsynchronous();
-Message prev;
-for (;;) {
-    prev = p;
-    p = p.next;
-    if (p == null || when &lt; p.when) {
-        break;
-    }
-    if (needWake &amp;&amp; p.isAsynchronous()) {
-        needWake = false;
-    }
-}
-msg.next = p; // invariant: p == prev.next
-prev.next = msg;
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&gt; 这段代码其实很简单。假设现在有三条消息msg1,msg2,msg3。这段代码将这三条消息彼此关联起来，形成了一种单向链表的结构。</div><div class="line">	</div><div class="line">	1. msg1 是队首消息，应该本第一个发送，或者说第一个轮询。</div><div class="line">	2. msg1.next = msg2; msg1.next记录了下一个将要轮询的消息msg2。</div><div class="line">	3. msg2.next = msg3; msg2.next记录msg2的下一个需要轮询的消息为msg3。</div><div class="line">&gt; 大神就是大神，我等屁民只好学着点了。代码非常简单，怕就怕“我怎么想不到”。  </div><div class="line">&gt; 好了，代码就看完了……欸，不对。初始化了Looper，MessageQueue,也通过enquenMessage将消息加入到了队列中。然后呢？消息是怎么发送到handlerMessage中的呢？</div><div class="line">&gt; 细心的同学应该发现，在ActivityThread的主函数中，调用Looper.prepareMainLooper后，接着就调用了Looper.loop()（可以回去查看一下这部分代码）；那么是不是，prepare之后就必须调用loop呢？是的，在prepare函数的源码注释中可以看到：Be sure to call * &#123;@link #loop()&#125; after calling this method。可见loop()函数是Handler机制中不可或缺的一环。那么就来看看loop到底做了啥，让它可以这么傲娇。</div></pre></td></tr></table></figure>
-<p> public static void loop() {</p>
-<pre><code>final Looper me = myLooper();
-if (me == null) {
-    throw new RuntimeException(&quot;No Looper; Looper.prepare() wasn&apos;t called on this thread.&quot;);
-}
-final MessageQueue queue = me.mQueue;
-for (;;) {
-    Message msg = queue.next(); // might block
-    if (msg == null) {
-        // No message indicates that the message queue is quitting.
-        return;
-    }
-    try {
-        msg.target.dispatchMessage(msg);
-    } finally {
-        if (traceTag != 0) {
-            Trace.traceEnd(traceTag);
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&gt; 这段代码其实很简单。假设现在有三条消息msg1,msg2,msg3。这段代码将这三条消息彼此关联起来，形成了一种单向链表的结构。</div><div class="line">	</div><div class="line">	1. msg1 是队首消息，应该本第一个发送，或者说第一个轮询。</div><div class="line">	2. msg1.next = msg2; msg1.next记录了下一个将要轮询的消息msg2。</div><div class="line">	3. msg2.next = msg3; msg2.next记录msg2的下一个需要轮询的消息为msg3。</div><div class="line">&gt; 大神就是大神，我等屁民只好学着点了。代码非常简单，怕就怕“我怎么想不到”。  </div><div class="line">&gt; 好了，代码就看完了……欸，不对。初始化了Looper，MessageQueue,也通过enquenMessage将消息加入到了队列中。然后呢？消息是怎么发送到handlerMessage中的呢？</div><div class="line">&gt; 细心的同学应该发现，在ActivityThread的主函数中，调用Looper.prepareMainLooper后，接着就调用了Looper.loop()（可以回去查看一下这部分代码）；那么是不是，prepare之后就必须调用loop呢？是的，在prepare函数的源码注释中可以看到：Be sure to call * &#123;@link #loop()&#125; after calling this method。可见loop()函数是Handler机制中不可或缺的一环。那么就来看看loop到底做了啥，让它可以这么傲娇。</div></pre></td></tr></table></figure>
+
+    public static void loop() {
+        final Looper me = myLooper();
+        if (me == null) {
+            throw new RuntimeException(&quot;No Looper; Looper.prepare() wasn&apos;t called on this thread.&quot;);
+        }
+        final MessageQueue queue = me.mQueue;
+        for (;;) {
+            Message msg = queue.next(); // might block
+            if (msg == null) {
+                // No message indicates that the message queue is quitting.
+                return;
+            }
+            try {
+                msg.target.dispatchMessage(msg);
+            } finally {
+                if (traceTag != 0) {
+                    Trace.traceEnd(traceTag);
+                }
+            }
+            msg.recycleUnchecked();
         }
     }
-    msg.recycleUnchecked();
-}
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&gt; 我们来细细读一下这段代码（去除了和本文主题无关部分）。</div><div class="line">	</div><div class="line">	1. `Message msg = queue.next();`获取消息链表中的队首消息。next()函数就不多介绍了，和入队时形式差不多，不过这个方法是从消息队列中获取message。</div><div class="line">	2. `msg.target.dispatchMessage(msg);`调用enqueueMessage方法时，msg.target记录的Handler对象，调用其dispatchMessage函数。来看看这个函数。</div></pre></td></tr></table></figure>
-<p> public void dispatchMessage(Message msg) {</p>
-<pre><code>if (msg.callback != null) {
-    handleCallback(msg);
-} else {
-    if (mCallback != null) {
-        if (mCallback.handleMessage(msg)) {
-            return;
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">&gt; 我们来细细读一下这段代码（去除了和本文主题无关部分）。</div><div class="line">	</div><div class="line">	1. `Message msg = queue.next();`获取消息链表中的队首消息。next()函数就不多介绍了，和入队时形式差不多，不过这个方法是从消息队列中获取message。</div><div class="line">	2. `msg.target.dispatchMessage(msg);`调用enqueueMessage方法时，msg.target记录的Handler对象，调用其dispatchMessage函数。来看看这个函数。</div></pre></td></tr></table></figure>
+
+    public void dispatchMessage(Message msg) {
+        if (msg.callback != null) {
+            handleCallback(msg);
+        } else {
+            if (mCallback != null) {
+                if (mCallback.handleMessage(msg)) {
+                    return;
+                }
+            }
+            handleMessage(msg);
         }
     }
-    handleMessage(msg);
-}
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">	&gt; 代码显而易见，直接调用了handleMessage函数，这就是为啥我们创建Handler时需要重写handleMessage方法的原因。</div><div class="line"></div><div class="line">	&gt; 最后，总结一下。</div><div class="line"></div><div class="line">		1. Message: 既是消息对象，也是消息队列的重要组成部分。前一个Message.next记录了后一个Message对象。以此为基础形成了一种类似链表的数据结构。</div><div class="line">		2. MessageQueue: 消息队列。自己并不是队列本身，更像是Message组成队列的一个维护者。它通过enqueueMessage（），以及next()函数控制消息的入队和出队达到维护的目的。</div><div class="line">		3. Handler： 有两个比较重要的方法</div><div class="line">			1. sendMessage(): 发送的消息实际上只是被加入了Message的队列中。同时发送的消息对象会通过Message.target记录调用者，也就是调用该函数的Handler本身。</div><div class="line">			2. handleMessage(): 要想用Handler，这个函数必备重写。因为Looper在轮询消息队列时会通过Message.target.handleMessage(),调用这个函数，达到线程间消息通讯的目的。</div><div class="line">		4. Looper: </div><div class="line">			1. Looper在UI线程中会默认调用Looper.prepareMainLooper();该函数的调用，会创建一个Looper对象，以及一个MessageQueue对象。MessageQueue对象会保存在Looper对象的mQueue字段中，方便调用。</div><div class="line">			2. Looper.prepareMainLooper()调用之后，接着就会调用Looper.loop()。该函数主要从Message队列中通过for循环不断的获取消息，且不断的调用dispatchMessage最终调用到handleMessage。达到线程间通讯的目的。</div><div class="line">				</div><div class="line">## 子线程发消息到主线程</div><div class="line"></div><div class="line">&gt; 附送代码，不解释</div></pre></td></tr></table></figure>
-<p>public class HandlerActivity extends Activity{<br> @Override<br> protected void onCreate(@Nullable Bundle savedInstanceState) {</p>
-<pre><code>super.onCreate(savedInstanceState);
-setContentView(R.layout.handler_activity);
-thread.start();
-</code></pre><p> }<br> public void send(View view) {//Button的点击事件</p>
-<pre><code>threadHandler.sendEmptyMessage(1);
-</code></pre><p> }<br> Handler threadHandler;<br> Thread thread = new Thread() {</p>
-<pre><code>@Override
-public void run() {
-    Looper.prepare();
-    threadHandler = new Handler() {
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">	&gt; 代码显而易见，直接调用了handleMessage函数，这就是为啥我们创建Handler时需要重写handleMessage方法的原因。</div><div class="line"></div><div class="line">	&gt; 最后，总结一下。</div><div class="line"></div><div class="line">		1. Message: 既是消息对象，也是消息队列的重要组成部分。前一个Message.next记录了后一个Message对象。以此为基础形成了一种类似链表的数据结构。</div><div class="line">		2. MessageQueue: 消息队列。自己并不是队列本身，更像是Message组成队列的一个维护者。它通过enqueueMessage（），以及next()函数控制消息的入队和出队达到维护的目的。</div><div class="line">		3. Handler： 有两个比较重要的方法</div><div class="line">			1. sendMessage(): 发送的消息实际上只是被加入了Message的队列中。同时发送的消息对象会通过Message.target记录调用者，也就是调用该函数的Handler本身。</div><div class="line">			2. handleMessage(): 要想用Handler，这个函数必备重写。因为Looper在轮询消息队列时会通过Message.target.handleMessage(),调用这个函数，达到线程间消息通讯的目的。</div><div class="line">		4. Looper: </div><div class="line">			1. Looper在UI线程中会默认调用Looper.prepareMainLooper();该函数的调用，会创建一个Looper对象，以及一个MessageQueue对象。MessageQueue对象会保存在Looper对象的mQueue字段中，方便调用。</div><div class="line">			2. Looper.prepareMainLooper()调用之后，接着就会调用Looper.loop()。该函数主要从Message队列中通过for循环不断的获取消息，且不断的调用dispatchMessage最终调用到handleMessage。达到线程间通讯的目的。</div><div class="line">				</div><div class="line">## 子线程发消息到主线程</div><div class="line"></div><div class="line">&gt; 附送代码，不解释</div></pre></td></tr></table></figure>
+
+public class HandlerActivity extends Activity{
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.handler_activity);
+        thread.start();
+    }
+    public void send(View view) {//Button的点击事件
+        threadHandler.sendEmptyMessage(1);
+    }
+    Handler threadHandler;
+    Thread thread = new Thread() {
         @Override
-        public void handleMessage(Message msg) {
-            Toast.makeText(HandlerActivity.this, &quot;88888&quot;, Toast.LENGTH_SHORT).show();
+        public void run() {
+            Looper.prepare();
+            threadHandler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    Toast.makeText(HandlerActivity.this, &quot;88888&quot;, Toast.LENGTH_SHORT).show();
+                }
+            };
+            Looper.loop();
         }
     };
-    Looper.loop();
 }
-</code></pre><p> };<br>}<br>```</p>
-</li>
-</ol>
-</li>
-</ul>
+</code></pre><p>```</p>
 
         </div>
 
@@ -411,7 +379,7 @@ public void run() {
     <div class="content">
         
 <span class="post-time">
-    最后更新时间：<time datetime="2017-07-23T14:56:04.718Z" itemprop="dateUpdated">2017-07-23 22:56:04</time>
+    Last updated: <time datetime="2017-07-23T14:59:55.078Z" itemprop="dateUpdated">2017-07-23 22:59:55</time>
 </span><br>
 
 
@@ -577,7 +545,7 @@ public void run() {
 
         <p>
             
-            <span>博客内容遵循<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
         </p>
     </div>
     <div class="bottom">
