@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>源来如此之Handlerrr机制 | SuperLi&#39;s Blog | 故见君子，云胡不喜。</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#4d42a8">
+    
+    
+    <meta name="keywords" content="Android">
+    <meta name="description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="源来如此之Handlerrr机制">
+<meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handler机制/index.html">
+<meta property="og:site_name" content="SuperLi&#39;s Blog">
+<meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执">
+<meta property="og:updated_time" content="2017-07-23T09:35:01.889Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="源来如此之Handlerrr机制">
+<meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">SuperLi</h5>
+          <a href="mailto:superliunique@gmail.com" title="superliunique@gmail.com" class="mail">superliunique@gmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/MrHeLi" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">源来如此之Handlerrr机制</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">源来如此之Handlerrr机制</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-07-23T08:37:15.000Z" itemprop="datePublished" class="page-time">
+  2017-07-23
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/源码解读/">源码解读</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#前言"><span class="post-toc-number">1.</span> <span class="post-toc-text">前言</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#Handler机制的由来"><span class="post-toc-number">2.</span> <span class="post-toc-text">Handler机制的由来</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#源码解读"><span class="post-toc-number">3.</span> <span class="post-toc-text">源码解读</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#子线程发消息到主线程"><span class="post-toc-number">4.</span> <span class="post-toc-text">子线程发消息到主线程</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-源来如此之Handler机制"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">源来如此之Handlerrr机制</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-07-23 16:37:15" datetime="2017-07-23T08:37:15.000Z"  itemprop="datePublished">2017-07-23</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/源码解读/">源码解读</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！</p>
+<h2 id="Handler机制的由来"><a href="#Handler机制的由来" class="headerlink" title="Handler机制的由来"></a>Handler机制的由来</h2><p>现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执行时长不超过16毫秒。所以，超过这个时常的逻辑，就别放到主线程了。即使一个刚入Android坑的同学，也知道IO读写，网络等耗时逻辑必须放在子线程中处理，相信你也不会在这上边犯错。</p>
+<p>那么，问题来了，主线程通常也被称为UI线程，它的作用就是用来创建并且更新UI的。我们在子线程中逻辑执行的结果，比如我们从网络上获取一张图片之后，怎么让主线程去显示这张图片呢？没错，Android提供了Handler来解决线程之间的通信问题。</p>
+<h2 id="源码解读"><a href="#源码解读" class="headerlink" title="源码解读"></a>源码解读</h2><ul>
+<li><p>首先，我们来看看Hanlder的一般用法。</p>
+<ol>
+<li><p>创建Handler对象，并复写handleMessage方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Handler mHandler = new Handler() &#123;//创建一个Handler</div><div class="line">    @Override</div><div class="line">    public void handleMessage(Message msg) &#123;//复写handleMessage方法</div><div class="line">        //处理对应逻辑</div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</li>
+<li><p>发送消息给刚才创建的mHandler的对象处理。发送过后，handleMessage函数将被调用。这就是一次简单的Handler的调用。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Message message = Message.obtain();</div><div class="line">   message.what = 1;</div><div class="line">   mHandler.sendMessage(message);</div></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+<li><p>相关类  </p>
+<ul>
+<li>明面上，我们可以拿到两个类：Hanlder、Message。</li>
+<li>其实，整套机制还包含Looper、和MessageQueue两个不可见的对象。</li>
+</ul>
+</li>
+<li><p>走进源码</p>
+<blockquote>
+<p>接下来，我们就围绕Handler、Message、Looper以及MessageQueue来探索Handler中的奥秘吧。</p>
+</blockquote>
+<ol>
+<li>首先，来看看<code>mHandler.sendMessage(message)</code>做了什么。<blockquote>
+<p>代码一路跟踪，最终到了Handler中的一个函数</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">public boolean sendMessageAtTime(Message msg, long uptimeMillis) &#123;</div><div class="line">    MessageQueue queue = mQueue;</div><div class="line">    if (queue == null) &#123;</div><div class="line">        RuntimeException e = new RuntimeException(</div><div class="line">                this + &quot; sendMessageAtTime() called with no mQueue&quot;);</div><div class="line">        Log.w(&quot;Looper&quot;, e.getMessage(), e);</div><div class="line">        return false;</div><div class="line">    &#125;</div><div class="line">    return enqueueMessage(queue, msg, uptimeMillis);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</blockquote>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="子线程发消息到主线程"><a href="#子线程发消息到主线程" class="headerlink" title="子线程发消息到主线程"></a>子线程发消息到主线程</h2>
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+<span class="post-time">
+    Last updated: <time datetime="2017-07-23T09:35:01.889Z" itemprop="dateUpdated">2017-07-23 17:35:01</time>
+</span><br>
+
+
+        
+        这里可以写作者留言，标签和 hexo 中所有变量及辅助函数等均可调用，示例：<a href="/2017/07/23/源来如此之Handler机制/" target="_blank" rel="external">http://yoursite.com/2017/07/23/源来如此之Handler机制/</a>
+        
+    </div>
+    <footer>
+        <a href="http://yoursite.com">
+            <img src="/img/avatar.jpg" alt="SuperLi">
+            SuperLi
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Android/">Android</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2017/07/23/源来如此之Handler机制/&title=《源来如此之Handlerrr机制》 — SuperLi's Blog&pic=http://yoursite.com/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://yoursite.com/2017/07/23/源来如此之Handler机制/&title=《源来如此之Handlerrr机制》 — SuperLi's Blog&source=走在Android道路上的程序猿，进化中……" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2017/07/23/源来如此之Handler机制/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《源来如此之Handlerrr机制》 — SuperLi's Blog&url=http://yoursite.com/2017/07/23/源来如此之Handler机制/&via=http://yoursite.com" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://yoursite.com/2017/07/23/源来如此之Handler机制/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/06/14/有趣的Java/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">有趣的Java</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'mrheli';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        尚未开通
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <ul class="reward-items">
+        
+        <li>
+            <img src="/img/notallow.png" title="微信打赏二维码" alt="微信打赏二维码">
+            <p>微信</p>
+        </li>
+        
+
+        
+        <li>
+            <img src="/img/notallow.png" title="支付宝打赏二维码" alt="支付宝打赏二维码">
+            <p>支付宝</p>
+        </li>
+        
+    </ul>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p>
+            <span>Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a></span>
+            <span>SuperLi &copy; 2015 - 2017</span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2017/07/23/源来如此之Handler机制/&title=《源来如此之Handlerrr机制》 — SuperLi's Blog&pic=http://yoursite.com/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://yoursite.com/2017/07/23/源来如此之Handler机制/&title=《源来如此之Handlerrr机制》 — SuperLi's Blog&source=走在Android道路上的程序猿，进化中……" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2017/07/23/源来如此之Handler机制/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《源来如此之Handlerrr机制》 — SuperLi's Blog&url=http://yoursite.com/2017/07/23/源来如此之Handler机制/&via=http://yoursite.com" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://yoursite.com/2017/07/23/源来如此之Handler机制/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://yoursite.com/2017/07/23/源来如此之Handler机制/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = 'SuperLi';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>
