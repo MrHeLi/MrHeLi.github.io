@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handlerrr机制/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执">
-<meta property="og:updated_time" content="2017-07-23T09:26:45.339Z">
+<meta property="og:updated_time" content="2017-07-23T09:31:07.096Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="源来如此之Handlerrr机制">
 <meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执">
@@ -180,7 +180,8 @@
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
             <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！</p>
-<h2 id="Handler机制的由来"><a href="#Handler机制的由来" class="headerlink" title="Handler机制的由来"></a>Handler机制的由来</h2><p>现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执行时长不超过16毫秒。所以，超过这个时常的逻辑，就别放到主线程了。即使一个刚入Android坑的同学，也知道IO读写，网络等耗时逻辑必须放在子线程中处理，相信你也不会在这上边犯错。<br>那么，问题来了，主线程通常也被称为UI线程，它的作用就是用来创建并且更新UI的。我们在子线程中逻辑执行的结果，比如我们从网络上获取一张图片之后，怎么让主线程去显示这张图片呢？没错，Android提供了Handler来解决线程之间的通信问题。</p>
+<h2 id="Handler机制的由来"><a href="#Handler机制的由来" class="headerlink" title="Handler机制的由来"></a>Handler机制的由来</h2><p>现在的手机屏幕的刷新频率基本为60Hz,也就是一秒撸60次（这手速！），平均16.67毫秒/次。所以想要APP所有的内容都显示出来，也就是不丢帧，就得保证主线程执行时长不超过16毫秒。所以，超过这个时常的逻辑，就别放到主线程了。即使一个刚入Android坑的同学，也知道IO读写，网络等耗时逻辑必须放在子线程中处理，相信你也不会在这上边犯错。 </p>
+<p>那么，问题来了，主线程通常也被称为UI线程，它的作用就是用来创建并且更新UI的。我们在子线程中逻辑执行的结果，比如我们从网络上获取一张图片之后，怎么让主线程去显示这张图片呢？没错，Android提供了Handler来解决线程之间的通信问题。</p>
 <h2 id="源码解读"><a href="#源码解读" class="headerlink" title="源码解读"></a>源码解读</h2><ul>
 <li><p>首先，我们来看看Hanlder的一般用法。</p>
 <ol>
@@ -218,7 +219,7 @@
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-07-23T09:26:45.339Z" itemprop="dateUpdated">2017-07-23 17:26:45</time>
+    Last updated: <time datetime="2017-07-23T09:31:07.096Z" itemprop="dateUpdated">2017-07-23 17:31:07</time>
 </span><br>
 
 
