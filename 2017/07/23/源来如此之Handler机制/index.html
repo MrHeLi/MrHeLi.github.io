@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handler机制/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
-<meta property="og:updated_time" content="2017-07-23T14:48:05.941Z">
+<meta property="og:updated_time" content="2017-07-23T14:49:28.255Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="源来如此之Handler机制">
 <meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
@@ -111,7 +111,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -219,7 +219,7 @@
 </ol>
 </li>
 </ul>
-<pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public Handler(Callback callback, boolean async) &#123;</div><div class="line">       if (FIND_POTENTIAL_LEAKS) &#123;</div><div class="line">           final Class&lt;? extends Handler&gt; klass = getClass();</div><div class="line">           if ((klass.isAnonymousClass() || klass.isMemberClass() || klass.isLocalClass()) &amp;&amp;</div><div class="line">                   (klass.getModifiers() &amp; Modifier.STATIC) == 0) &#123;</div><div class="line">               Log.w(TAG, &quot;The following Handler class should be static or leaks might occur: &quot; +</div><div class="line">                   klass.getCanonicalName());</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       mLooper = Looper.myLooper();</div><div class="line">       if (mLooper == null) &#123;</div><div class="line">           throw new RuntimeException(</div><div class="line">               &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);</div><div class="line">       &#125;</div><div class="line">       mQueue = mLooper.mQueue;</div><div class="line">       mCallback = callback;</div><div class="line">       mAsynchronous = async;</div><div class="line">   &#125;</div><div class="line"></div><div class="line">```  </div><div class="line"></div><div class="line"></div><div class="line">&gt; 擦，捅了马蜂窝了，代码这么多。我就看个初始化而已，至于吗。哎，我们继续。这是Handler的构造函数之一，我们的`new Handler()`会调用该构造完成对象创建动作。在该构造函数中，我们看到了我们的目标mQueue得到了初始化`mQueue = mLooper.mQueue;`,好吧，mLooper开始出来搞事情了。可以看出，mLooper是通过Looper对myLooper函数静态调用赋值的`mLooper = Looper.myLooper();`。进入Looper代码。</div></pre></td></tr></table></figure>
+<pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public Handler(Callback callback, boolean async) &#123;</div><div class="line">       if (FIND_POTENTIAL_LEAKS) &#123;</div><div class="line">           final Class&lt;? extends Handler&gt; klass = getClass();</div><div class="line">           if ((klass.isAnonymousClass() || klass.isMemberClass() || klass.isLocalClass()) &amp;&amp;</div><div class="line">                   (klass.getModifiers() &amp; Modifier.STATIC) == 0) &#123;</div><div class="line">               Log.w(TAG, &quot;The following Handler class should be static or leaks might occur: &quot; +</div><div class="line">                   klass.getCanonicalName());</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       mLooper = Looper.myLooper();</div><div class="line">       if (mLooper == null) &#123;</div><div class="line">           throw new RuntimeException(</div><div class="line">               &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);</div><div class="line">       &#125;</div><div class="line">       mQueue = mLooper.mQueue;</div><div class="line">       mCallback = callback;</div><div class="line">       mAsynchronous = async;</div><div class="line">   &#125;</div><div class="line"></div><div class="line"></div><div class="line">```  </div><div class="line"></div><div class="line"></div><div class="line">&gt; 擦，捅了马蜂窝了，代码这么多。我就看个初始化而已，至于吗。哎，我们继续。这是Handler的构造函数之一，我们的`new Handler()`会调用该构造完成对象创建动作。在该构造函数中，我们看到了我们的目标mQueue得到了初始化`mQueue = mLooper.mQueue;`,好吧，mLooper开始出来搞事情了。可以看出，mLooper是通过Looper对myLooper函数静态调用赋值的`mLooper = Looper.myLooper();`。进入Looper代码。</div></pre></td></tr></table></figure>
 
 public static @Nullable Looper myLooper() {
     return sThreadLocal.get();
@@ -407,7 +407,7 @@ public void dispatchMessage(Message msg) {
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-07-23T14:48:05.941Z" itemprop="dateUpdated">2017-07-23 22:48:05</time>
+    最后更新时间：<time datetime="2017-07-23T14:49:28.255Z" itemprop="dateUpdated">2017-07-23 22:49:28</time>
 </span><br>
 
 
@@ -573,7 +573,7 @@ public void dispatchMessage(Message msg) {
 
         <p>
             
-            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
+            <span>博客内容遵循<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
         </p>
     </div>
     <div class="bottom">
