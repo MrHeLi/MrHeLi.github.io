@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handler机制/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
-<meta property="og:updated_time" content="2017-07-24T00:14:53.074Z">
+<meta property="og:updated_time" content="2017-07-24T00:20:13.308Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="源来如此之Handler机制">
 <meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
@@ -262,86 +262,70 @@
 </ol>
 </blockquote>
 </blockquote>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div></pre></td><td class="code"><pre><div class="line">		boolean enqueueMessage(Message msg, long when) &#123;</div><div class="line">	        if (msg.target == null) &#123;</div><div class="line">	            throw new IllegalArgumentException(&quot;Message must have a target.&quot;);</div><div class="line">	        &#125;</div><div class="line">	        if (msg.isInUse()) &#123;</div><div class="line">	            throw new IllegalStateException(msg + &quot; This message is already in use.&quot;);</div><div class="line">	        &#125;</div><div class="line">	    	synchronized (this) &#123;</div><div class="line">	            if (mQuitting) &#123;</div><div class="line">	                IllegalStateException e = new IllegalStateException(</div><div class="line">	                        msg.target + &quot; sending message to a Handler on a dead thread&quot;);</div><div class="line">	                Log.w(TAG, e.getMessage(), e);</div><div class="line">	                msg.recycle();</div><div class="line">	                return false;</div><div class="line">	            &#125;</div><div class="line">	            msg.markInUse();</div><div class="line">	            msg.when = when;</div><div class="line">	            Message p = mMessages;</div><div class="line">	            boolean needWake;</div><div class="line">	            if (p == null || when == 0 || when &lt; p.when) &#123;</div><div class="line">	                // New head, wake up the event queue if blocked.</div><div class="line">	                msg.next = p;</div><div class="line">	                mMessages = msg;</div><div class="line">	                needWake = mBlocked;</div><div class="line">	            &#125; else &#123;</div><div class="line">	                // Inserted within the middle of the queue.  Usually we don&apos;t have to wake</div><div class="line">	                // up the event queue unless there is a barrier at the head of the queue</div><div class="line">	                // and the message is the earliest asynchronous message in the queue.</div><div class="line">	                needWake = mBlocked &amp;&amp; p.target == null &amp;&amp; msg.isAsynchronous();</div><div class="line">	                Message prev;</div><div class="line">	                for (;;) &#123;</div><div class="line">	                    prev = p;</div><div class="line">	                    p = p.next;</div><div class="line">	                    if (p == null || when &lt; p.when) &#123;</div><div class="line">	                        break;</div><div class="line">	                    &#125;</div><div class="line">	                    if (needWake &amp;&amp; p.isAsynchronous()) &#123;</div><div class="line">	                        needWake = false;</div><div class="line">	                    &#125;</div><div class="line">	            	&#125;</div><div class="line">	                msg.next = p; // invariant: p == prev.next</div><div class="line">	                prev.next = msg;</div><div class="line">	        	&#125;</div><div class="line">	            // We can assume mPtr != 0 because mQuitting is false.</div><div class="line">	            if (needWake) &#123;</div><div class="line">	                nativeWake(mPtr);</div><div class="line">	            &#125;</div><div class="line">	    	&#125;</div><div class="line">			return true;</div><div class="line">		&#125;</div><div class="line">		``` </div><div class="line"></div><div class="line">----------</div><div class="line"></div><div class="line"></div><div class="line">	&gt; 哇塞，好多代码。在使用handler过程中，不知道大家有没有想过这样一个问题，Handler机制中有一个消息队列，里边可以存放很多消息对象。那么就必然需要用一种数据结构来维护，那这是个什么样的数据结构呢？我刚开始猜测不是数组，就是集合。于是，我就在源码里拼命的找啊，结果屁都没找到。显然，GooGle大神们想的和我等屁民并不一样。代码就在上边，为了突出，专门贴出来，见识一下吧。</div></pre></td></tr></table></figure>
-<p> Message p = mMessages;<br> boolean needWake;<br> if (p == null || when == 0 || when &lt; p.when) {</p>
-<pre><code>// New head, wake up the event queue if blocked.
-msg.next = p;
-mMessages = msg;
-needWake = mBlocked;
-</code></pre><p> } else {</p>
-<pre><code>// Inserted within the middle of the queue.  Usually we don&apos;t have to wake
-// up the event queue unless there is a barrier at the head of the queue
-// and the message is the earliest asynchronous message in the queue.
-needWake = mBlocked &amp;&amp; p.target == null &amp;&amp; msg.isAsynchronous();
-Message prev;
-for (;;) {
-    prev = p;
-    p = p.next;
-    if (p == null || when &lt; p.when) {
-        break;
-    }
-    if (needWake &amp;&amp; p.isAsynchronous()) {
-        needWake = false;
-    }
-}
-msg.next = p; // invariant: p == prev.next
-prev.next = msg;
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">&gt; 这段代码其实很简单。假设现在有三条消息msg1,msg2,msg3。这段代码将这三条消息彼此关联起来，形成了一种单向链表的结构。</div><div class="line">	</div><div class="line">&gt;&gt;	1. msg1 是队首消息，应该本第一个发送，或者说第一个轮询。</div><div class="line">&gt;&gt;	2. msg1.next = msg2; msg1.next记录了下一个将要轮询的消息msg2。</div><div class="line">&gt;&gt;	3. msg2.next = msg3; msg2.next记录msg2的下一个需要轮询的消息为msg3。</div><div class="line">&gt; 大神就是大神，我等屁民只好学着点了。代码非常简单，怕就怕“我怎么想不到”。  </div><div class="line">&gt; 好了，代码就看完了……欸，不对。初始化了Looper，MessageQueue,也通过enquenMessage将消息加入到了队列中。然后呢？消息是怎么发送到handlerMessage中的呢？</div><div class="line">&gt; 细心的同学应该发现，在ActivityThread的主函数中，调用Looper.prepareMainLooper后，接着就调用了Looper.loop()（可以回去查看一下这部分代码）；那么是不是，prepare之后就必须调用loop呢？是的，在prepare函数的源码注释中可以看到：Be sure to call * &#123;@link #loop()&#125; after calling this method。可见loop()函数是Handler机制中不可或缺的一环。那么就来看看loop到底做了啥，让它可以这么傲娇。</div></pre></td></tr></table></figure>
-<p> public static void loop() {</p>
-<pre><code>final Looper me = myLooper();
-if (me == null) {
-    throw new RuntimeException(&quot;No Looper; Looper.prepare() wasn&apos;t called on this thread.&quot;);
-}
-final MessageQueue queue = me.mQueue;
-for (;;) {
-    Message msg = queue.next(); // might block
-    if (msg == null) {
-        // No message indicates that the message queue is quitting.
-        return;
-    }
-    try {
-        msg.target.dispatchMessage(msg);
-    } finally {
-        if (traceTag != 0) {
-            Trace.traceEnd(traceTag);
-        }
-    }
-    msg.recycleUnchecked();
-}
-</code></pre><p> }</p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">	&gt; 我们来细细读一下这段代码（去除了和本文主题无关部分）。</div><div class="line">		</div><div class="line">	&gt;&gt;	1. `Message msg = queue.next();`获取消息链表中的队首消息。next()函数就不多介绍了，和入队时形式差不多，不过这个方法是从消息队列中获取message。</div><div class="line">	&gt;&gt;	2. `msg.target.dispatchMessage(msg);`调用enqueueMessage方法时，msg.target记录的Handler对象，调用其dispatchMessage函数。来看看这个函数。</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">		```  </div><div class="line">		public void dispatchMessage(Message msg) &#123;</div><div class="line">	        if (msg.callback != null) &#123;</div><div class="line">	            handleCallback(msg);</div><div class="line">	        &#125; else &#123;</div><div class="line">	            if (mCallback != null) &#123;</div><div class="line">	                if (mCallback.handleMessage(msg)) &#123;</div><div class="line">	                    return;</div><div class="line">	                &#125;</div><div class="line">	            &#125;</div><div class="line">	            handleMessage(msg);</div><div class="line">	        &#125;</div><div class="line">    	&#125;</div><div class="line">		```  </div><div class="line"></div><div class="line"></div><div class="line">	&gt; 代码显而易见，直接调用了handleMessage函数，这就是为啥我们创建Handler时需要重写handleMessage方法的原因。</div><div class="line"></div><div class="line">	&gt; 最后，总结一下。</div><div class="line"></div><div class="line">	&gt;&gt;	1. Message: 既是消息对象，也是消息队列的重要组成部分。前一个Message.next记录了后一个Message对象。以此为基础形成了一种类似链表的数据结构。</div><div class="line">	&gt;&gt;	2. MessageQueue: 消息队列。自己并不是队列本身，更像是Message组成队列的一个维护者。它通过enqueueMessage（），以及next()函数控制消息的入队和出队达到维护的目的。</div><div class="line">	&gt;&gt;	3. Handler： 有两个比较重要的方法</div><div class="line">	&gt;&gt;&gt;		1. sendMessage(): 发送的消息实际上只是被加入了Message的队列中。同时发送的消息对象会通过Message.target记录调用者，也就是调用该函数的Handler本身。</div><div class="line">	&gt;&gt;&gt;		2. handleMessage(): 要想用Handler，这个函数必备重写。因为Looper在轮询消息队列时会通过Message.target.handleMessage(),调用这个函数，达到线程间消息通讯的目的。</div><div class="line">	&gt;&gt;	4. Looper: </div><div class="line">	&gt;&gt;&gt;		1. Looper在UI线程中会默认调用Looper.prepareMainLooper();该函数的调用，会创建一个Looper对象，以及一个MessageQueue对象。MessageQueue对象会保存在Looper对象的mQueue字段中，方便调用。</div><div class="line">	&gt;&gt;&gt;		2. Looper.prepareMainLooper()调用之后，接着就会调用Looper.loop()。该函数主要从Message队列中通过for循环不断的获取消息，且不断的调用dispatchMessage最终调用到handleMessage。达到线程间通讯的目的。</div><div class="line">				</div><div class="line">## 子线程发消息到主线程</div><div class="line"></div><div class="line">&gt; 附送代码，不解释</div></pre></td></tr></table></figure>
-<p>public class HandlerActivity extends Activity{<br> @Override<br> protected void onCreate(@Nullable Bundle savedInstanceState) {</p>
-<pre><code>super.onCreate(savedInstanceState);
-setContentView(R.layout.handler_activity);
-thread.start();
-</code></pre><p> }<br> public void send(View view) {//Button的点击事件</p>
-<pre><code>threadHandler.sendEmptyMessage(1);
-</code></pre><p> }<br> Handler threadHandler;<br> Thread thread = new Thread() {</p>
-<pre><code>@Override
-public void run() {
-    Looper.prepare();
-    threadHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            Toast.makeText(HandlerActivity.this, &quot;88888&quot;, Toast.LENGTH_SHORT).show();
-        }
-    };
-    Looper.loop();
-}
-</code></pre><p> };<br>}<br>```</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">boolean enqueueMessage(Message msg, long when) &#123;</div><div class="line">    if (msg.target == null) &#123;</div><div class="line">        throw new IllegalArgumentException(&quot;Message must have a target.&quot;);</div><div class="line">    &#125;</div><div class="line">    if (msg.isInUse()) &#123;</div><div class="line">        throw new IllegalStateException(msg + &quot; This message is already in use.&quot;);</div><div class="line">    &#125;</div><div class="line">	synchronized (this) &#123;</div><div class="line">        if (mQuitting) &#123;</div><div class="line">            IllegalStateException e = new IllegalStateException(</div><div class="line">                    msg.target + &quot; sending message to a Handler on a dead thread&quot;);</div><div class="line">            Log.w(TAG, e.getMessage(), e);</div><div class="line">            msg.recycle();</div><div class="line">            return false;</div><div class="line">        &#125;</div><div class="line">        msg.markInUse();</div><div class="line">        msg.when = when;</div><div class="line">        Message p = mMessages;</div><div class="line">        boolean needWake;</div><div class="line">        if (p == null || when == 0 || when &lt; p.when) &#123;</div><div class="line">            // New head, wake up the event queue if blocked.</div><div class="line">            msg.next = p;</div><div class="line">            mMessages = msg;</div><div class="line">            needWake = mBlocked;</div><div class="line">        &#125; else &#123;</div><div class="line">            // Inserted within the middle of the queue.  Usually we don&apos;t have to wake</div><div class="line">            // up the event queue unless there is a barrier at the head of the queue</div><div class="line">            // and the message is the earliest asynchronous message in the queue.</div><div class="line">            needWake = mBlocked &amp;&amp; p.target == null &amp;&amp; msg.isAsynchronous();</div><div class="line">            Message prev;</div><div class="line">            for (;;) &#123;</div><div class="line">                prev = p;</div><div class="line">                p = p.next;</div><div class="line">                if (p == null || when &lt; p.when) &#123;</div><div class="line">                    break;</div><div class="line">                &#125;</div><div class="line">                if (needWake &amp;&amp; p.isAsynchronous()) &#123;</div><div class="line">                    needWake = false;</div><div class="line">                &#125;</div><div class="line">        	&#125;</div><div class="line">            msg.next = p; // invariant: p == prev.next</div><div class="line">            prev.next = msg;</div><div class="line">    	&#125;</div><div class="line">        // We can assume mPtr != 0 because mQuitting is false.</div><div class="line">        if (needWake) &#123;</div><div class="line">            nativeWake(mPtr);</div><div class="line">        &#125;</div><div class="line">	&#125;</div><div class="line">	return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 </li>
 </ol>
 </li>
 </ul>
+<pre><code>&gt; 哇塞，好多代码。在使用handler过程中，不知道大家有没有想过这样一个问题，Handler机制中有一个消息队列，里边可以存放很多消息对象。那么就必然需要用一种数据结构来维护，那这是个什么样的数据结构呢？我刚开始猜测不是数组，就是集合。于是，我就在源码里拼命的找啊，结果屁都没找到。显然，GooGle大神们想的和我等屁民并不一样。代码就在上边，为了突出，专门贴出来，见识一下吧。
 
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">Message p = mMessages;</div><div class="line">   boolean needWake;</div><div class="line">   if (p == null || when == 0 || when &lt; p.when) &#123;</div><div class="line">       // New head, wake up the event queue if blocked.</div><div class="line">       msg.next = p;</div><div class="line">       mMessages = msg;</div><div class="line">       needWake = mBlocked;</div><div class="line">   &#125; else &#123;</div><div class="line">       // Inserted within the middle of the queue.  Usually we don&apos;t have to wake</div><div class="line">       // up the event queue unless there is a barrier at the head of the queue</div><div class="line">       // and the message is the earliest asynchronous message in the queue.</div><div class="line">       needWake = mBlocked &amp;&amp; p.target == null &amp;&amp; msg.isAsynchronous();</div><div class="line">       Message prev;</div><div class="line">       for (;;) &#123;</div><div class="line">           prev = p;</div><div class="line">           p = p.next;</div><div class="line">           if (p == null || when &lt; p.when) &#123;</div><div class="line">               break;</div><div class="line">           &#125;</div><div class="line">           if (needWake &amp;&amp; p.isAsynchronous()) &#123;</div><div class="line">               needWake = false;</div><div class="line">           &#125;</div><div class="line">       &#125;</div><div class="line">       msg.next = p; // invariant: p == prev.next</div><div class="line">       prev.next = msg;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+
+&gt; 这段代码其实很简单。假设现在有三条消息msg1,msg2,msg3。这段代码将这三条消息彼此关联起来，形成了一种单向链表的结构。
+
+&gt;&gt;    1. msg1 是队首消息，应该本第一个发送，或者说第一个轮询。
+&gt;&gt;    2. msg1.next = msg2; msg1.next记录了下一个将要轮询的消息msg2。
+&gt;&gt;    3. msg2.next = msg3; msg2.next记录msg2的下一个需要轮询的消息为msg3。
+&gt; 大神就是大神，我等屁民只好学着点了。代码非常简单，怕就怕“我怎么想不到”。  
+&gt; 好了，代码就看完了……欸，不对。初始化了Looper，MessageQueue,也通过enquenMessage将消息加入到了队列中。然后呢？消息是怎么发送到handlerMessage中的呢？
+&gt; 细心的同学应该发现，在ActivityThread的主函数中，调用Looper.prepareMainLooper后，接着就调用了Looper.loop()（可以回去查看一下这部分代码）；那么是不是，prepare之后就必须调用loop呢？是的，在prepare函数的源码注释中可以看到：Be sure to call * {@link #loop()} after calling this method。可见loop()函数是Handler机制中不可或缺的一环。那么就来看看loop到底做了啥，让它可以这么傲娇。
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public static void loop() &#123;</div><div class="line">      	final Looper me = myLooper();</div><div class="line">       if (me == null) &#123;</div><div class="line">           throw new RuntimeException(&quot;No Looper; Looper.prepare() wasn&apos;t called on this thread.&quot;);</div><div class="line">       &#125;</div><div class="line">      	final MessageQueue queue = me.mQueue;</div><div class="line">       for (;;) &#123;</div><div class="line">           Message msg = queue.next(); // might block</div><div class="line">           if (msg == null) &#123;</div><div class="line">               // No message indicates that the message queue is quitting.</div><div class="line">               return;</div><div class="line">           &#125;</div><div class="line">           try &#123;</div><div class="line">               msg.target.dispatchMessage(msg);</div><div class="line">           &#125; finally &#123;</div><div class="line">               if (traceTag != 0) &#123;</div><div class="line">                   Trace.traceEnd(traceTag);</div><div class="line">               &#125;</div><div class="line">           &#125;</div><div class="line">           msg.recycleUnchecked();</div><div class="line">       &#125;</div><div class="line">  	&#125;</div></pre></td></tr></table></figure>
+
+&gt; 我们来细细读一下这段代码（去除了和本文主题无关部分）。
+
+&gt;&gt;    1. `Message msg = queue.next();`获取消息链表中的队首消息。next()函数就不多介绍了，和入队时形式差不多，不过这个方法是从消息队列中获取message。
+&gt;&gt;    2. `msg.target.dispatchMessage(msg);`调用enqueueMessage方法时，msg.target记录的Handler对象，调用其dispatchMessage函数。来看看这个函数。
+
+
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">		public void dispatchMessage(Message msg) &#123;</div><div class="line">	        if (msg.callback != null) &#123;</div><div class="line">	            handleCallback(msg);</div><div class="line">	        &#125; else &#123;</div><div class="line">	            if (mCallback != null) &#123;</div><div class="line">	                if (mCallback.handleMessage(msg)) &#123;</div><div class="line">	                    return;</div><div class="line">	                &#125;</div><div class="line">	            &#125;</div><div class="line">	            handleMessage(msg);</div><div class="line">	        &#125;</div><div class="line">    	&#125;</div><div class="line">		```  </div><div class="line"></div><div class="line"></div><div class="line">	&gt; 代码显而易见，直接调用了handleMessage函数，这就是为啥我们创建Handler时需要重写handleMessage方法的原因。</div><div class="line"></div><div class="line">	&gt; 最后，总结一下。</div><div class="line"></div><div class="line">	&gt;&gt;	1. Message: 既是消息对象，也是消息队列的重要组成部分。前一个Message.next记录了后一个Message对象。以此为基础形成了一种类似链表的数据结构。</div><div class="line">	&gt;&gt;	2. MessageQueue: 消息队列。自己并不是队列本身，更像是Message组成队列的一个维护者。它通过enqueueMessage（），以及next()函数控制消息的入队和出队达到维护的目的。</div><div class="line">	&gt;&gt;	3. Handler： 有两个比较重要的方法</div><div class="line">	&gt;&gt;&gt;		1. sendMessage(): 发送的消息实际上只是被加入了Message的队列中。同时发送的消息对象会通过Message.target记录调用者，也就是调用该函数的Handler本身。</div><div class="line">	&gt;&gt;&gt;		2. handleMessage(): 要想用Handler，这个函数必备重写。因为Looper在轮询消息队列时会通过Message.target.handleMessage(),调用这个函数，达到线程间消息通讯的目的。</div><div class="line">	&gt;&gt;	4. Looper: </div><div class="line">	&gt;&gt;&gt;		1. Looper在UI线程中会默认调用Looper.prepareMainLooper();该函数的调用，会创建一个Looper对象，以及一个MessageQueue对象。MessageQueue对象会保存在Looper对象的mQueue字段中，方便调用。</div><div class="line">	&gt;&gt;&gt;		2. Looper.prepareMainLooper()调用之后，接着就会调用Looper.loop()。该函数主要从Message队列中通过for循环不断的获取消息，且不断的调用dispatchMessage最终调用到handleMessage。达到线程间通讯的目的。</div><div class="line">				</div><div class="line">## 子线程发消息到主线程</div><div class="line"></div><div class="line">&gt; 附送代码，不解释</div></pre></td></tr></table></figure>
+
+public class HandlerActivity extends Activity{
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.handler_activity);
+        thread.start();
+    }
+    public void send(View view) {//Button的点击事件
+        threadHandler.sendEmptyMessage(1);
+    }
+    Handler threadHandler;
+    Thread thread = new Thread() {
+        @Override
+        public void run() {
+            Looper.prepare();
+            threadHandler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    Toast.makeText(HandlerActivity.this, &quot;88888&quot;, Toast.LENGTH_SHORT).show();
+                }
+            };
+            Looper.loop();
+        }
+    };
+}
+```
+</code></pre>
         </div>
 
         <blockquote class="post-copyright">
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-07-24T00:14:53.074Z" itemprop="dateUpdated">2017-07-24 08:14:53</time>
+    Last updated: <time datetime="2017-07-24T00:20:13.308Z" itemprop="dateUpdated">2017-07-24 08:20:13</time>
 </span><br>
 
 
