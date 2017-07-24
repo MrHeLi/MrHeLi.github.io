@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/07/23/源来如此之Handler机制/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
-<meta property="og:updated_time" content="2017-07-24T14:26:42.427Z">
+<meta property="og:updated_time" content="2017-07-24T14:28:29.539Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="源来如此之Handler机制">
 <meta name="twitter:description" content="前言很早以前，就研究过Handler机制源码，但当时并没有用文字记录。以至于工作中被同事、同行问起，只能回忆起大概，也就不好意思说自己懂它了。正好今天没事儿，重新撸一撸源码，以来丰富博客，而来说不定有新的收获呢！ 看完这篇博文，能得到什么 脱了衣服的Handler。 你也可以从我的分析过程中了解到，怎样脱掉Handler衣服的方法。Handler机制的由来现在的手机屏幕的刷新频率基本为60Hz,也">
@@ -289,8 +289,20 @@
 <li><code>msg.target.dispatchMessage(msg);</code>调用enqueueMessage方法时，msg.target记录的Handler对象，调用其dispatchMessage函数。来看看这个函数。</li>
 </ul>
 </blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public void dispatchMessage(Message msg) &#123;</div><div class="line">	if (msg.callback != null) &#123;</div><div class="line">	    handleCallback(msg);</div><div class="line">	&#125; else &#123;</div><div class="line">	    if (mCallback != null) &#123;</div><div class="line">	        if (mCallback.handleMessage(msg)) &#123;</div><div class="line">	            return;</div><div class="line">	        &#125;</div><div class="line">	    &#125;</div><div class="line">	    handleMessage(msg);</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<pre></pre>
+<pre>
+public void dispatchMessage(Message msg) {
+    if (msg.callback != null) {
+        handleCallback(msg);
+    } else {
+        if (mCallback != null) {
+            if (mCallback.handleMessage(msg)) {
+                return;
+            }
+        }
+        handleMessage(msg);
+    }
+}
+</pre>
 
 <blockquote>
 <p>代码显而易见，直接调用了handleMessage函数，这就是为啥我们创建Handler时需要重写handleMessage方法的原因。<br>最后，总结一下。<br>Message: 既是消息对象，也是消息队列的重要组成部分。前一个Message.next记录了后一个Message对象。以此为基础形成了一种类似链表的数据结构。  </p>
@@ -318,7 +330,7 @@
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-07-24T14:26:42.427Z" itemprop="dateUpdated">2017-07-24 22:26:42</time>
+    Last updated: <time datetime="2017-07-24T14:28:29.539Z" itemprop="dateUpdated">2017-07-24 22:28:29</time>
 </span><br>
 
 
