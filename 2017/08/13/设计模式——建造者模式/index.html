@@ -27,7 +27,7 @@
 <meta property="og:url" content="http://yoursite.com/2017/08/13/设计模式——建造者模式/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="创建型模式在GOF23中，属于创建型模式的有：      单例模式     工厂模式     抽象工厂模式     建造者模式     原型模式      建造者模式正是其中一种 建造者模式简介/动机动机将产品内部表象（细节）与怎么构建的具体过程分离，从而使同样的构建过程生产具有不同表象的产品。   产品的内部表象： 产品通常由不同零件组成。这种零件可以是对象，或者成员变量，通常被叫做产品的内部表">
-<meta property="og:updated_time" content="2017-08-13T09:22:43.199Z">
+<meta property="og:updated_time" content="2017-08-13T09:38:34.537Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="设计模式——建造者模式">
 <meta name="twitter:description" content="创建型模式在GOF23中，属于创建型模式的有：      单例模式     工厂模式     抽象工厂模式     建造者模式     原型模式      建造者模式正是其中一种 建造者模式简介/动机动机将产品内部表象（细节）与怎么构建的具体过程分离，从而使同样的构建过程生产具有不同表象的产品。   产品的内部表象： 产品通常由不同零件组成。这种零件可以是对象，或者成员变量，通常被叫做产品的内部表">
@@ -111,7 +111,7 @@
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
                 <i class="icon icon-lg icon-chevron-left"></i>
             </a>
-            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
                 <i class="icon icon-lg icon-search"></i>
             </a>
@@ -152,7 +152,7 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#创建型模式"><span class="post-toc-number">1.</span> <span class="post-toc-text">创建型模式</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#建造者模式"><span class="post-toc-number">2.</span> <span class="post-toc-text">建造者模式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#简介-动机"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">简介/动机</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#动机"><span class="post-toc-number">2.1.1.</span> <span class="post-toc-text">动机</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#解决"><span class="post-toc-number">2.1.2.</span> <span class="post-toc-text">解决</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#角色"><span class="post-toc-number">2.1.3.</span> <span class="post-toc-text">角色</span></a></li></ol></li></ol></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#创建型模式"><span class="post-toc-number">1.</span> <span class="post-toc-text">创建型模式</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#建造者模式"><span class="post-toc-number">2.</span> <span class="post-toc-text">建造者模式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#简介-动机"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">简介/动机</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#动机"><span class="post-toc-number">2.1.1.</span> <span class="post-toc-text">动机</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#解决"><span class="post-toc-number">2.1.2.</span> <span class="post-toc-text">解决</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#角色"><span class="post-toc-number">2.1.3.</span> <span class="post-toc-text">角色</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#举个栗子"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">举个栗子</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#任务"><span class="post-toc-number">2.2.1.</span> <span class="post-toc-text">任务</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤1"><span class="post-toc-number">2.2.2.</span> <span class="post-toc-text">步骤1</span></a></li></ol></li></ol></li></ol>
         </nav>
     </aside>
     
@@ -194,22 +194,24 @@
 </blockquote>
 <h3 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h3><p>主要解决在开发过程中，可能遇到一个复杂产品的创建。该产品的构建需要一系列的内部表象（零件或对象）通过固定的算法构成，因为需求盖面，内部表象既对象存在着大量变化，但是将它们组合在一起的算法确实相对固定的。</p>
 <h3 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h3><ol>
-<li>构建者接口（Builder）: 独立于业务层外，规范对产品内部表象（对象）建造的方法表示。直接建造产品具体内部表象（对象）是具体构建者。具体构建者需要实现该接口的所有方法。一般来说，方法的数量和内部表象（对象或零件）的数量一一对应，也就是有多少零件，就有多少建造方法。除了构造零件的方法外，还有一种返回构建结果的抽象方法。</li>
-<li>具体构建者（ConcretBuilder)：该角色的任务有两种。1、实现构建者接口的方法，描述零件的建造步骤。2、构建完成后，向客户端提供构产品实例。</li>
-<li>导演者（Director)：该角色调用具体构建者创建产品对象。需要知道的是，导演者角色扮演一种指挥的作用，它并没有产品的任何知识，这些知识包含在具体构建者角色中。</li>
+<li>构建者接口（Builder）: 独立于业务层外，规范对产品内部表象（对象）建造的方法表示。直接建造产品具体内部表象（对象）是具体构建者。具体构建者需要实现该接口的所有方法。一般来说，方法的数量和内部表象（对象或零件）的数量一一对应，也就是有多少零件，就有多少建造方法。</li>
+<li>具体构建者（ConcretBuilder)：该角色的任务有两种。1、实现构建者接口的方法，描述零件的建造步骤。</li>
+<li>导演者（Director)：该角色调用具体构建者创建产品对象。需要知道的是，导演者角色扮演一种指挥的作用，它并没有产品的任何知识，这些知识包含在具体构建者角色中。此外，还需要提供一个返回穿件完成的产品对象的方法。</li>
 <li>产品（Product）： 需要生产复杂产品对象。</li>
 </ol>
 <blockquote>
-<p>需要<strong>注意</strong>的是，<strong>客户端主要与导演者角色打交道</strong>。首先，客户端将创建产品对象的请求交与导演者。导演者将请求划分为不同的构建步骤交与具体构建者。具体构建者对于客户端来说，是隐藏的。<br>一般而言，<strong>一个产品对应一个构建者角色</strong>，产品的每一个零件对应于构建者角色中的每一个构建方法。</p>
+<p>需要<strong>注意</strong>的是，<strong>客户端主要与导演者角色打交道</strong>。首先，客户端将创建产品对象的请求交与导演者。导演者将请求划分为不同的构建步骤交与具体构建者。具体构建者对于客户端来说，是隐藏的。</p>
+<p>一般而言，<strong>一个产品对应一个构建者角色</strong>，产品的每一个零件对应于构建者角色中的每一个构建方法。</p>
 </blockquote>
-
+<h2 id="举个栗子"><a href="#举个栗子" class="headerlink" title="举个栗子"></a>举个栗子</h2><h3 id="任务"><a href="#任务" class="headerlink" title="任务"></a>任务</h3><p>生产一部手机：<br>对于客户端而言，手机是一个足够复杂的对象，内部拥有足够多的零件（栗子中只假设有两个零件）。对于这些零件，不同的生产过程，产生的零件不同。但是这些零件的装配过程是固定的。这和前文在<strong>解决</strong>部分描述的内容暗合。所以可以使用建造者模式。</p>
+<h3 id="步骤1"><a href="#步骤1" class="headerlink" title="步骤1"></a>步骤1</h3>
         </div>
 
         <blockquote class="post-copyright">
     <div class="content">
         
 <span class="post-time">
-    最后更新时间：<time datetime="2017-08-13T09:22:43.199Z" itemprop="dateUpdated">2017-08-13 17:22:43</time>
+    Last updated: <time datetime="2017-08-13T09:38:34.537Z" itemprop="dateUpdated">2017-08-13 17:38:34</time>
 </span><br>
 
 
@@ -375,7 +377,7 @@
 
         <p>
             
-            <span>博客内容遵循<a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
         </p>
     </div>
     <div class="bottom">
