@@ -20,17 +20,17 @@
     
     
     <meta name="keywords" content="GOF23">
-    <meta name="description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：      单一职责（简单却不容易做到）：一个类只负责一项职责。 由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这样即使">
+    <meta name="description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：     1. 单一职责（简单却不容易做到）：一个类只负责一项职责。  由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这">
 <meta name="keywords" content="GOF23">
 <meta property="og:type" content="article">
 <meta property="og:title" content="设计模式——面向对象的基本原则">
 <meta property="og:url" content="http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
-<meta property="og:description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：      单一职责（简单却不容易做到）：一个类只负责一项职责。 由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这样即使">
-<meta property="og:updated_time" content="2017-08-13T07:48:14.930Z">
+<meta property="og:description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：     1. 单一职责（简单却不容易做到）：一个类只负责一项职责。  由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这">
+<meta property="og:updated_time" content="2017-08-13T07:49:50.874Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="设计模式——面向对象的基本原则">
-<meta name="twitter:description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：      单一职责（简单却不容易做到）：一个类只负责一项职责。 由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这样即使">
+<meta name="twitter:description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：     1. 单一职责（简单却不容易做到）：一个类只负责一项职责。  由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这">
     
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
@@ -152,7 +152,7 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#面向对象的基本原则"><span class="post-toc-number">1.</span> <span class="post-toc-text">面向对象的基本原则</span></a></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#面向对象的基本原则"><span class="post-toc-number">1.</span> <span class="post-toc-text">面向对象的基本原则</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-4"><a class="post-toc-link" href="#1-单一职责（简单却不容易做到）："><span class="post-toc-number">1.0.0.1.</span> <span class="post-toc-text">1. 单一职责（简单却不容易做到）：</span></a></li></ol></li></ol></li></ol></li></ol>
         </nav>
     </aside>
     
@@ -180,8 +180,8 @@
         </div>
         <div class="post-content" id="post-content" itemprop="postContent">
             <h1 id="面向对象的基本原则"><a href="#面向对象的基本原则" class="headerlink" title="面向对象的基本原则"></a>面向对象的基本原则</h1><p>封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。<br>面向对象的设计，还需要我们在设计中遵循五大原则：    </p>
-<ol>
-<li>单一职责（简单却不容易做到）：<br>一个类只负责一项职责。<blockquote>
+<h4 id="1-单一职责（简单却不容易做到）："><a href="#1-单一职责（简单却不容易做到）：" class="headerlink" title="1. 单一职责（简单却不容易做到）："></a>1. 单一职责（简单却不容易做到）：</h4><p>一个类只负责一项职责。</p>
+<blockquote>
 <p>由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。<br>解决方案：使用类A负责功能1，类B负责功能2，这样即使改变需求，也不会相互影响。<br>必要性：在正常的编码中，我们都不会犯这样的错误。但请注意，我们的需求是会变的。当初设计的只负责类A只负责功能P，现在被分为粒度更细的功能P1和P2，这是完全有可能的。<br>这时候，我们有三种方案：    </p>
 <ol>
 <li>将类A分解成A1和A2，分别负责功能P1和P2,在程序已经写好的情况下，不仅要重构类A而且客户端代码也需要修改，显得太费时间了。        </li>
@@ -189,8 +189,6 @@
 <li>当然，你一可以为类A新增方法，来满足需求。在类的级别上不符合单一职责原则，但是在方法级别上它是遵循单一职责的。<br>建议： 除非类足够简单，否则请遵循单一职责原则。</li>
 </ol>
 </blockquote>
-</li>
-</ol>
 
         </div>
 
@@ -198,7 +196,7 @@
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-08-13T07:48:14.930Z" itemprop="dateUpdated">2017-08-13 15:48:14</time>
+    Last updated: <time datetime="2017-08-13T07:49:50.874Z" itemprop="dateUpdated">2017-08-13 15:49:50</time>
 </span><br>
 
 
