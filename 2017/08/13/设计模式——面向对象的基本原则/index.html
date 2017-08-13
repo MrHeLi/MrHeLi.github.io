@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    <title>设计模式——面向对象的基本原则 | SuperLi&#39;s Blog | 故见君子，云胡不喜。</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#4d42a8">
+    
+    
+    <meta name="keywords" content="GOF23">
+    <meta name="description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：      单一职责（简单却不容易做到）：一个类只负责一项职责。 由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这样即使">
+<meta name="keywords" content="GOF23">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计模式——面向对象的基本原则">
+<meta property="og:url" content="http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/index.html">
+<meta property="og:site_name" content="SuperLi&#39;s Blog">
+<meta property="og:description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：      单一职责（简单却不容易做到）：一个类只负责一项职责。 由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这样即使">
+<meta property="og:updated_time" content="2017-08-13T07:34:55.624Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="设计模式——面向对象的基本原则">
+<meta name="twitter:description" content="面向对象的基本原则封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。面向对象的设计，还需要我们在设计中遵循五大原则：      单一职责（简单却不容易做到）：一个类只负责一项职责。 由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。解决方案：使用类A负责功能1，类B负责功能2，这样即使">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide" >
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/avatar.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">SuperLi</h5>
+          <a href="mailto:superliunique@gmail.com" title="superliunique@gmail.com" class="mail">superliunique@gmail.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/"  >
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives"  >
+                <i class="icon icon-lg icon-archives"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags"  >
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories"  >
+                <i class="icon icon-lg icon-th-list"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/MrHeLi" target="_blank" >
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">设计模式——面向对象的基本原则</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="Search">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">设计模式——面向对象的基本原则</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2017-08-13T04:55:08.000Z" itemprop="datePublished" class="page-time">
+  2017-08-13
+</time>
+
+
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Creational-Patterns/">Creational_Patterns</a></li></ul>
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#面向对象的基本原则"><span class="post-toc-number">1.</span> <span class="post-toc-text">面向对象的基本原则</span></a></li></ol>
+        </nav>
+    </aside>
+    
+<article id="post-设计模式——面向对象的基本原则"
+  class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">设计模式——面向对象的基本原则</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2017-08-13 12:55:08" datetime="2017-08-13T04:55:08.000Z"  itemprop="datePublished">2017-08-13</time>
+
+            
+	<ul class="article-category-list"><li class="article-category-list-item"><a class="article-category-list-link" href="/categories/Creational-Patterns/">Creational_Patterns</a></li></ul>
+
+
+
+            
+<span id="busuanzi_container_page_pv" title="文章总阅读量" style='display:none'>
+    <i class="icon icon-eye icon-pr"></i><span id="busuanzi_value_page_pv"></span>
+</span>
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <h1 id="面向对象的基本原则"><a href="#面向对象的基本原则" class="headerlink" title="面向对象的基本原则"></a>面向对象的基本原则</h1><p>封装，继承，多态，是面向对象设计语言的三个特征。但是，在程序设计中，不是说你使用了这三种特性，你的程序就是面向对象的设计了。<br>面向对象的设计，还需要我们在设计中遵循五大原则：    </p>
+<ol>
+<li>单一职责（简单却不容易做到）：<br>一个类只负责一项职责。<blockquote>
+<p>由来： 当一个类A负责不同的功能1和功能2，由于功能1的需求发生变化，可以会影响到功能2。<br>解决方案：使用类A负责功能1，类B负责功能2，这样即使改变需求，也不会相互影响。<br>必要性：在正常的编码中，我们都不会犯这样的错误。但请注意，我们的需求是会变的。当初设计的只负责类A只负责功能P，现在被分为粒度更细的功能P1和P2，这是完全有可能的。<br>这时候，我们有三种方案：    </p>
+<ol>
+<li>将类A分解成A1和A2，分别负责功能P1和P2,在程序已经写好的情况下，不仅要重构类A而且客户端代码也需要修改，显得太费时间了。    </li>
+<li>所以，大部分人会选择简单修改A类，同时负责两个功能简单的多，虽然有悖于单一职责。（但是这样做的风险在于，你永远不知道将来功能P是否会细分成P1,P2,P3,P4……（职责扩散）,所以在功能扩散到我们无法控制之前，请尽快重构代码）<br>3.当然，你一可以为类A新增方法，来满足需求。在类的级别上不符合单一职责原则，但是在方法级别上它是遵循单一职责的。<br>建议： 除非类足够简单，否则请遵循单一职责原则。</li>
+</ol>
+</blockquote>
+</li>
+</ol>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    <div class="content">
+        
+<span class="post-time">
+    Last updated: <time datetime="2017-08-13T07:34:55.624Z" itemprop="dateUpdated">2017-08-13 15:34:55</time>
+</span><br>
+
+
+        
+        这里可以写作者留言，标签和 hexo 中所有变量及辅助函数等均可调用，示例：<a href="/2017/08/13/设计模式——面向对象的基本原则/" target="_blank" rel="external">http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/</a>
+        
+    </div>
+    <footer>
+        <a href="http://yoursite.com">
+            <img src="/img/avatar.jpg" alt="SuperLi">
+            SuperLi
+        </a>
+    </footer>
+</blockquote>
+
+        
+<div class="page-reward">
+    <a id="rewardBtn" href="javascript:;" class="page-reward-btn waves-effect waves-circle waves-light">赏</a>
+</div>
+
+
+
+        <div class="post-footer">
+            
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GOF23/">GOF23</a></li></ul>
+
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/&title=《设计模式——面向对象的基本原则》 — SuperLi's Blog&pic=http://yoursite.com/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/&title=《设计模式——面向对象的基本原则》 — SuperLi's Blog&source=走在Android道路上的程序猿，进化中……" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《设计模式——面向对象的基本原则》 — SuperLi's Blog&url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/&via=http://yoursite.com" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2017/07/23/源来如此之Handler机制/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">源来如此之Handler机制</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+<section class="comments" id="comments">
+    <div id="disqus_thread"></div>
+    <script>
+    var disqus_shortname = 'mrheli';
+    lazyScripts.push('//' + disqus_shortname + '.disqus.com/embed.js')
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+<div id="reward" class="page-modal reward-lay">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <h3 class="reward-title">
+        <i class="icon icon-quote-left"></i>
+        尚未开通
+        <i class="icon icon-quote-right"></i>
+    </h3>
+    <ul class="reward-items">
+        
+        <li>
+            <img src="/img/notallow.png" title="微信打赏二维码" alt="微信打赏二维码">
+            <p>微信</p>
+        </li>
+        
+
+        
+        <li>
+            <img src="/img/notallow.png" title="支付宝打赏二维码" alt="支付宝打赏二维码">
+            <p>支付宝</p>
+        </li>
+        
+    </ul>
+</div>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+<p>
+    <span id="busuanzi_container_site_uv" style='display:none'>
+        站点总访客数：<span id="busuanzi_value_site_uv"></span>
+    </span>
+    <span id="busuanzi_container_site_pv" style='display:none'>
+        站点总访问量：<span id="busuanzi_value_site_pv"></span>
+    </span>
+</p>
+
+
+        <p>
+            
+            <span>This blog is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p>
+            <span>Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a></span>
+            <span>SuperLi &copy; 2015 - 2017</span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/&title=《设计模式——面向对象的基本原则》 — SuperLi's Blog&pic=http://yoursite.com/img/avatar.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/&title=《设计模式——面向对象的基本原则》 — SuperLi's Blog&source=走在Android道路上的程序猿，进化中……" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《设计模式——面向对象的基本原则》 — SuperLi's Blog&url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/&via=http://yoursite.com" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://yoursite.com/2017/08/13/设计模式——面向对象的基本原则/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: true };
+
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+<script>
+(function() {
+    var OriginTitile = document.title, titleTime;
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            document.title = 'SuperLi';
+            clearTimeout(titleTime);
+        } else {
+            document.title = '';
+            titleTime = setTimeout(function() {
+                document.title = OriginTitile;
+            },2000);
+        }
+    });
+})();
+</script>
+
+
+
+</body>
+</html>
