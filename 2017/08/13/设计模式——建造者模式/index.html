@@ -27,10 +27,12 @@
 <meta property="og:url" content="http://yoursite.com/2017/08/13/设计模式——建造者模式/index.html">
 <meta property="og:site_name" content="SuperLi&#39;s Blog">
 <meta property="og:description" content="创建型模式在GOF23中，属于创建型模式的有：      单例模式     工厂模式     抽象工厂模式     建造者模式     原型模式      建造者模式正是其中一种 建造者模式简介/动机动机将产品内部表象（细节）与怎么构建的具体过程分离，从而使同样的构建过程生产具有不同表象的产品。   产品的内部表象： 产品通常由不同零件组成。这种零件可以是对象，或者成员变量，通常被叫做产品的内部表">
-<meta property="og:updated_time" content="2017-08-13T09:54:31.859Z">
+<meta property="og:image" content="http://i.imgur.com/D5G3AGO.png">
+<meta property="og:updated_time" content="2017-08-13T10:24:46.730Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="设计模式——建造者模式">
 <meta name="twitter:description" content="创建型模式在GOF23中，属于创建型模式的有：      单例模式     工厂模式     抽象工厂模式     建造者模式     原型模式      建造者模式正是其中一种 建造者模式简介/动机动机将产品内部表象（细节）与怎么构建的具体过程分离，从而使同样的构建过程生产具有不同表象的产品。   产品的内部表象： 产品通常由不同零件组成。这种零件可以是对象，或者成员变量，通常被叫做产品的内部表">
+<meta name="twitter:image" content="http://i.imgur.com/D5G3AGO.png">
     
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
@@ -152,7 +154,7 @@
     <aside class="post-widget">
         <nav class="post-toc-wrap" id="post-toc">
             <h4>TOC</h4>
-            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#创建型模式"><span class="post-toc-number">1.</span> <span class="post-toc-text">创建型模式</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#建造者模式"><span class="post-toc-number">2.</span> <span class="post-toc-text">建造者模式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#简介-动机"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">简介/动机</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#动机"><span class="post-toc-number">2.1.1.</span> <span class="post-toc-text">动机</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#解决"><span class="post-toc-number">2.1.2.</span> <span class="post-toc-text">解决</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#角色"><span class="post-toc-number">2.1.3.</span> <span class="post-toc-text">角色</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#举个栗子"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">举个栗子</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#任务"><span class="post-toc-number">2.2.1.</span> <span class="post-toc-text">任务</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤1：产品"><span class="post-toc-number">2.2.2.</span> <span class="post-toc-text">步骤1：产品</span></a></li></ol></li></ol></li></ol>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#创建型模式"><span class="post-toc-number">1.</span> <span class="post-toc-text">创建型模式</span></a></li><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#建造者模式"><span class="post-toc-number">2.</span> <span class="post-toc-text">建造者模式</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#简介-动机"><span class="post-toc-number">2.1.</span> <span class="post-toc-text">简介/动机</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#动机"><span class="post-toc-number">2.1.1.</span> <span class="post-toc-text">动机</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#解决"><span class="post-toc-number">2.1.2.</span> <span class="post-toc-text">解决</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#角色"><span class="post-toc-number">2.1.3.</span> <span class="post-toc-text">角色</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#举个栗子"><span class="post-toc-number">2.2.</span> <span class="post-toc-text">举个栗子</span></a><ol class="post-toc-child"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#任务"><span class="post-toc-number">2.2.1.</span> <span class="post-toc-text">任务</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤1：产品"><span class="post-toc-number">2.2.2.</span> <span class="post-toc-text">步骤1：产品</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤2：建造者接口"><span class="post-toc-number">2.2.3.</span> <span class="post-toc-text">步骤2：建造者接口</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤3：具体建造者"><span class="post-toc-number">2.2.4.</span> <span class="post-toc-text">步骤3：具体建造者</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤4：-导演者"><span class="post-toc-number">2.2.5.</span> <span class="post-toc-text">步骤4： 导演者</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#步骤5：客户端"><span class="post-toc-number">2.2.6.</span> <span class="post-toc-text">步骤5：客户端</span></a></li></ol></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#其它"><span class="post-toc-number">2.3.</span> <span class="post-toc-text">其它</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#类图关系"><span class="post-toc-number">2.4.</span> <span class="post-toc-text">类图关系</span></a></li></ol></li></ol>
         </nav>
     </aside>
     
@@ -228,13 +230,95 @@ public class Iphone7 {
     }
 }
 </pre>
+
+<h3 id="步骤2：建造者接口"><a href="#步骤2：建造者接口" class="headerlink" title="步骤2：建造者接口"></a>步骤2：建造者接口</h3><blockquote>
+<p>建造者接口定义了产品零件的具体建造方法，最后交由具体建造者角色实现。有多少零件，对应多少建造方法，该例中，为了方便，只有’cpu’和’storage’两个零件。十几种往往是有很多零件的。</p>
+</blockquote>
+<pre>
+public interface PhoneBuilder {
+    String buildCpu();//cpu构建抽象方法
+    String buildStorage();//内存构建抽象方法
+}
+</pre>
+
+<h3 id="步骤3：具体建造者"><a href="#步骤3：具体建造者" class="headerlink" title="步骤3：具体建造者"></a>步骤3：具体建造者</h3><blockquote>
+<p>该角色实现建造者中的所有方法，定义了产品各个零件的创建方法。</p>
+</blockquote>
+<pre>
+public class Iphone7Builder implements PhoneBuilder {
+
+
+    @Override
+    public String buildCpu() {
+        System.out.println("建造CPU");
+        return "四核";
+    }
+
+    @Override
+    public String buildStorage() {
+        System.out.println("建造内存");
+        return "128G";
+    }
+
+}
+
+</pre>
+
+<h3 id="步骤4：-导演者"><a href="#步骤4：-导演者" class="headerlink" title="步骤4： 导演者"></a>步骤4： 导演者</h3><blockquote>
+<p>有具体构建者的引用，拥有产品创建过程中的装配固定算法。最后返回一个产品对象。<br>导演者主要用于客户端请求的划分和对具体建造者的分发。</p>
+</blockquote>
+<pre>
+public class Iphone7Director {
+    private PhoneBuilder builder;//持有引用方便调用
+
+    public Iphone7Director(PhoneBuilder builder) {
+        this.builder = builder;
+    }
+
+    @Override
+    public Iphone7 createPhone() {
+        String cpu = builder.buildCpu();
+        String storage = builder.buildStorage();
+        Iphone7 phone = new Iphone7();
+        phone.setCpu(cpu);
+        phone.setStorage(storage);
+        return phone;
+    }
+
+}
+</pre>
+
+<h3 id="步骤5：客户端"><a href="#步骤5：客户端" class="headerlink" title="步骤5：客户端"></a>步骤5：客户端</h3><blockquote>
+<p>客户端发送请求给导演者角色，并从导演者角色获得一个产品对象。</p>
+</blockquote>
+<pre>
+public class Client {
+    public static void main(String[] args) {
+        PhoneDirector director = new Iphone7Director(new Iphone7Builder());
+        Iphone7 iphone7 = director.createPhone();
+        System.out.println(iphone7.getStorage());
+    } 
+}
+</pre>
+
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>本文栗子虽然只生产了一部Iphone。但我们也可以用于生产华为，三星等一系列产品。需要做的只是为每类（华为）产品，新增一个建造者（ConcretBuilder）就可以了。当然，也许这个时候将导演类抽象是一个必要的选择。这一点暗合了OOP中的开闭原则。</p>
+<h2 id="类图关系"><a href="#类图关系" class="headerlink" title="类图关系"></a>类图关系</h2><blockquote>
+<p>该类图中，我对导演者做了抽象。</p>
+</blockquote>
+<figure class="image-bubble">
+                <div class="img-lightbox">
+                    <div class="overlay"></div>
+                    <img src="http://i.imgur.com/D5G3AGO.png" alt="" title="">
+                </div>
+                <div class="image-caption"></div>
+            </figure>
         </div>
 
         <blockquote class="post-copyright">
     <div class="content">
         
 <span class="post-time">
-    Last updated: <time datetime="2017-08-13T09:54:31.859Z" itemprop="dateUpdated">2017-08-13 17:54:31</time>
+    Last updated: <time datetime="2017-08-13T10:24:46.730Z" itemprop="dateUpdated">2017-08-13 18:24:46</time>
 </span><br>
 
 
